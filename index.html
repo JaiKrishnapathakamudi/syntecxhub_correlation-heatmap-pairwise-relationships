@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correlation Analyzer & Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-chart-line logo-icon"></i>
+                    <span>CorrVisual</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#overview" class="menu-item active" id="btn-overview">
+                    <i class="fa-solid fa-circle-info"></i> Overview
+                </a>
+                <a href="#heatmap-section" class="menu-item" id="btn-heatmap">
+                    <i class="fa-solid fa-square-poll-horizontal"></i> Correlation Heatmap
+                </a>
+                <a href="#pairwise-section" class="menu-item" id="btn-pairwise">
+                    <i class="fa-solid fa-chart-scatter"></i> Pairwise Relationships
+                </a>
+                <a href="#data-section" class="menu-item" id="btn-data">
+                    <i class="fa-solid fa-table"></i> Data Explorer
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p>Designed for GitHub Showcase</p>
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Dashboard Bar -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1>Interactive Correlation Dashboard</h1>
+                    <p class="subtitle">Compute, visualize, and analyze pairwise linear relationships in numeric data.</p>
+                </div>
+                
+                <div class="data-source-control">
+                    <button class="btn btn-primary" id="btn-load-demo">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Data
+                    </button>
+                    <label for="csv-upload" class="btn btn-secondary">
+                        <i class="fa-solid fa-file-upload"></i> Upload CSV
+                        <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                    </label>
+                </div>
+            </header>
+
+            <!-- Dashboard Overview / Introduction Panel -->
+            <section id="overview" class="dashboard-section active-section">
+                <!-- Dropzone Area -->
+                <div class="upload-dropzone" id="dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                    <h3>Drag & Drop your CSV File Here</h3>
+                    <p>Or click the "Upload CSV" button above to analyze your own dataset. Only numeric columns will be processed for correlations.</p>
+                </div>
+
+                <!-- Summary Cards Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card glow-blue">
+                        <div class="metric-icon"><i class="fa-solid fa-circle-plus"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Strongest Positive Correlation</span>
+                            <h3 class="metric-value" id="top-positive-val">-</h3>
+                            <p class="metric-desc" id="top-positive-pair">Load data to view</p>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glow-pink">
+                        <div class="metric-icon"><i class="fa-solid fa-circle-minus"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Strongest Negative Correlation</span>
+                            <h3 class="metric-value" id="top-negative-val">-</h3>
+                            <p class="metric-desc" id="top-negative-pair">Load data to view</p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card glow-green">
+                        <div class="metric-icon"><i class="fa-solid fa-database"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Dataset Details</span>
+                            <h3 class="metric-value" id="dataset-shape">-</h3>
+                            <p class="metric-desc" id="dataset-features">Numeric Columns: -</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights Block -->
+                <div class="insights-container card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-magnifying-glass-chart"></i> Relationship Summaries</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="insights-grid">
+                            <div class="insights-panel">
+                                <h3><i class="fa-solid fa-arrow-trend-up text-success"></i> Positive Relationships</h3>
+                                <ul class="relationship-list" id="positive-relationships-list">
+                                    <li class="empty-list">No data loaded yet. Click "Load Sample Data" to start.</li>
+                                </ul>
+                            </div>
+                            <div class="insights-panel">
+                                <h3><i class="fa-solid fa-arrow-trend-down text-danger"></i> Negative Relationships</h3>
+                                <ul class="relationship-list" id="negative-relationships-list">
+                                    <li class="empty-list">No data loaded yet. Click "Load Sample Data" to start.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Heatmap Visualization Section -->
+            <section id="heatmap-section" class="dashboard-section">
+                <div class="grid-layout-2">
+                    <!-- Control Options Card -->
+                    <div class="card control-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-sliders"></i> Heatmap Controls</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="control-group">
+                                <label class="control-label">Heatmap Styling</label>
+                                <div class="checkbox-wrapper">
+                                    <input type="checkbox" id="chk-mask-upper" checked>
+                                    <label for="chk-mask-upper">Mask Upper Triangle</label>
+                                </div>
+                                <div class="checkbox-wrapper">
+                                    <input type="checkbox" id="chk-show-annot" checked>
+                                    <label for="chk-show-annot">Show Annotations</label>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label for="sel-color-map" class="control-label">Color Scheme</label>
+                                <select id="sel-color-map" class="form-select">
+                                    <option value="coolwarm">Coolwarm (Blue to Red)</option>
+                                    <option value="spectral">Spectral (Green to Orange/Red)</option>
+                                    <option value="viridis">Viridis (Purple to Yellow)</option>
+                                    <option value="monochromatic">Cobalt (Mono Cyan/Blue)</option>
+                                </select>
+                            </div>
+
+                            <div class="help-box">
+                                <h4>Pearson Correlation Matrix</h4>
+                                <p>This grid displays the Pearson correlation coefficient between each pair of numeric features. Values range from <strong>-1.00</strong> (perfect negative correlation) to <strong>+1.00</strong> (perfect positive correlation).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Heatmap Display Card -->
+                    <div class="card heatmap-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-border-all"></i> Pearson Correlation Heatmap</h2>
+                            <span class="badge" id="data-status-badge">No Data</span>
+                        </div>
+                        <div class="card-body heatmap-container-parent">
+                            <div id="heatmap-render-area" class="heatmap-render-area">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-table-cells-large"></i>
+                                    <p>Please load or upload a dataset to view the correlation heatmap</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pairwise Scatter Plots Section -->
+            <section id="pairwise-section" class="dashboard-section">
+                <div class="grid-layout-2">
+                    <!-- Scatter Controls -->
+                    <div class="card control-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-sliders"></i> Scatter Controls</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="control-group">
+                                <label for="sel-scatter-x" class="control-label">X Axis Variable (Independent)</label>
+                                <select id="sel-scatter-x" class="form-select">
+                                    <option value="">Select variable</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="sel-scatter-y" class="control-label">Y Axis Variable (Dependent)</label>
+                                <select id="sel-scatter-y" class="form-select">
+                                    <option value="">Select variable</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="sel-scatter-color" class="control-label">Categorical Group (Color/Hue)</label>
+                                <select id="sel-scatter-color" class="form-select">
+                                    <option value="">None (Single Color)</option>
+                                </select>
+                            </div>
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="chk-show-trend" checked>
+                                <label for="chk-show-trend">Show Linear Regression Trendline</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scatter plot Display Card -->
+                    <div class="card scatter-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-chart-scatter"></i> Pairwise Relationship Plot</h2>
+                        </div>
+                        <div class="card-body scatter-container-parent">
+                            <div class="canvas-container">
+                                <canvas id="scatter-chart"></canvas>
+                                <div id="scatter-empty-state" class="empty-state">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <p>Please load data and select variables to render the scatter plot</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Explorer Section -->
+            <section id="data-section" class="dashboard-section">
+                <div class="card">
+                    <div class="card-header header-between">
+                        <h2><i class="fa-solid fa-database"></i> Loaded Dataset Viewer</h2>
+                        <div class="table-controls">
+                            <span id="table-row-count">Showing 0 rows</span>
+                            <div class="pagination">
+                                <button class="btn btn-icon btn-sm" id="btn-prev-page" disabled><i class="fa-solid fa-chevron-left"></i></button>
+                                <span id="lbl-page-num">Page 1 of 1</span>
+                                <button class="btn btn-icon btn-sm" id="btn-next-page" disabled><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body overflow-x">
+                        <table class="data-table" id="dataset-table">
+                            <thead>
+                                <tr>
+                                    <th>No columns loaded</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Load data to inspect dataset records here.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Interactive Tooltip Template -->
+    <div id="heatmap-tooltip" class="heatmap-tooltip" style="opacity: 0;"></div>
+
+    <!-- Custom Javascript -->
+    <script src="dashboard.js"></script>
+</body>
+</html>
